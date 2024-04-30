@@ -1,0 +1,29 @@
+- name: Collect log files from the control node
+  hosts: control_node
+  tasks:
+    - name: Remove existing file
+      file:
+        path: /home/altero/collectlog
+        state: absent
+
+    - name: Create collectlog directory on remote hosts
+      file:
+        path: /home/altero/collectlog
+        state: directory
+        mode: 0755
+
+    - name: Collect log file
+      synchronize:
+        src: /var/log/syslog
+        dest: /home/altero/collectlog/syslog
+        checksum: yes
+        mode: push
+      register: syslog
+
+    - name: View log
+      command: tail -n 100 /home/altero/collectlog/syslog
+      register: log_output
+
+    - name: Display the log output
+      debug:
+        var: log_output.stdout_lines
